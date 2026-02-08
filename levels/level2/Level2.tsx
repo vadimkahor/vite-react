@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { LevelProps } from '../../types';
 import { LEVEL2_CONFIG, BOSS_CONFIG } from './config';
@@ -191,7 +190,8 @@ const Level2: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive, startA
       let isScreaming = false;
       let vol = 0;
       if (analyserRef.current && dataArrayRef.current) {
-          analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+          // Fix: Cast to Uint8Array to satisfy strict TS check
+          analyserRef.current.getByteFrequencyData(dataArrayRef.current as Uint8Array);
           // Simple average volume
           const sum = dataArrayRef.current.reduce((a, b) => a + b, 0);
           const avg = sum / dataArrayRef.current.length;

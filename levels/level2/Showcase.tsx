@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useCallback } from 'react';
 import { LEVEL2_CONFIG } from './config';
 import { Level2State, Platform, Decoration } from './types';
@@ -44,11 +43,15 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
             width: LEVEL2_CONFIG.PLAYER_WIDTH,
             height: LEVEL2_CONFIG.PLAYER_HEIGHT,
             isGrounded: true, isJumping: false, isBoosted: false, facingRight: true, frameTimer: 0,
-            currentPlatformType: null
+            currentPlatformType: null,
+            hp: 3,
+            invulnerableTimer: 0
         },
         platforms: [],
         decorations: [],
         enemies: [],
+        boss: null,
+        projectiles: [],
         lastEnemySpawnX: 0,
         backgroundElements: [],
         speedLines: [],
@@ -56,7 +59,8 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
         maxCameraX: 0,
         score: 0,
         gameTime: 0,
-        levelLength: 20000
+        levelLength: 20000,
+        wasScreaming: false
     });
 
     useEffect(() => {
