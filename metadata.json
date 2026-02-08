@@ -1,0 +1,7 @@
+{
+  "name": "Girl Next Door (mic)",
+  "description": "A high-speed arcade racing game. Help Katya get to work on time or watch the HR chaos unfold.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
