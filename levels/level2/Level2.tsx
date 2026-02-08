@@ -190,8 +190,8 @@ const Level2: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive, startA
       let isScreaming = false;
       let vol = 0;
       if (analyserRef.current && dataArrayRef.current) {
-          // Fix: Cast to Uint8Array to satisfy strict TS check
-          analyserRef.current.getByteFrequencyData(dataArrayRef.current as Uint8Array);
+          // Fix: Cast to any to bypass Strict Uint8Array mismatch in some TS environments
+          analyserRef.current.getByteFrequencyData(dataArrayRef.current as any);
           // Simple average volume
           const sum = dataArrayRef.current.reduce((a, b) => a + b, 0);
           const avg = sum / dataArrayRef.current.length;

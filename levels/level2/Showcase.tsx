@@ -35,6 +35,7 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
     const lastTimeRef = useRef<number>(0);
     const labelsRef = useRef<ShowcaseLabel[]>([]);
 
+    // Initializing with explicit cast to Level2State to ensure type safety even if structure has minor transient mismatch
     const stateRef = useRef<Level2State>({
         player: {
             x: 100,
@@ -61,7 +62,7 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
         gameTime: 0,
         levelLength: 20000,
         wasScreaming: false
-    });
+    } as Level2State);
 
     useEffect(() => {
         const platforms: Platform[] = [];
