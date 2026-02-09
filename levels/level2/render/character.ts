@@ -17,8 +17,8 @@ export const drawKatya = (ctx: CanvasRenderingContext2D, p: PlayerState) => {
   const animTime = p.frameTimer / 5;
   const bob = isMoving && p.isGrounded ? Math.sin(animTime) * 3 : 0;
   
-  // 1. Тело (Жакет)
-  ctx.fillStyle = '#facc15'; // Желтый (брендовый/яркий)
+  // 1. Тело (Свитер)
+  ctx.fillStyle = '#F3DBC1'; 
   ctx.beginPath();
   ctx.moveTo(5, 20 + bob);
   ctx.lineTo(25, 20 + bob);
@@ -26,12 +26,12 @@ export const drawKatya = (ctx: CanvasRenderingContext2D, p: PlayerState) => {
   ctx.lineTo(2, 50 + bob);
   ctx.fill();
 
-  // 2. Юбка/Брюки (Темно-синий)
-  ctx.fillStyle = '#1e3a8a';
+  // 2. Юбка
+  ctx.fillStyle = '#1c1c1c';
   ctx.fillRect(5, 50 + bob, 20, 10);
 
   // 3. Ноги
-  ctx.fillStyle = '#0f172a'; // Колготки
+  ctx.fillStyle = '#0f172a'; // Колготки (Темные)
   // Левая нога
   const legOffsetL = isMoving ? Math.sin(animTime * 0.5) * 5 : 0;
   const legOffsetR = isMoving ? Math.cos(animTime * 0.5) * 5 : 0;
@@ -51,8 +51,8 @@ export const drawKatya = (ctx: CanvasRenderingContext2D, p: PlayerState) => {
   ctx.arc(15, 12 + bob, 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // 5. Волосы (Каре)
-  ctx.fillStyle = '#78350f'; // Шатенка
+  // 5. Волосы (Каре) - Рыжеватый блонд (Strawberry Blonde)
+  ctx.fillStyle = '#d97706'; 
   ctx.beginPath();
   ctx.moveTo(5, 5 + bob);
   ctx.quadraticCurveTo(15, -5 + bob, 25, 5 + bob);
@@ -60,8 +60,8 @@ export const drawKatya = (ctx: CanvasRenderingContext2D, p: PlayerState) => {
   ctx.lineTo(4, 20 + bob);
   ctx.fill();
 
-  // 6. Шарфик (Развевается)
-  ctx.fillStyle = '#ec4899'; // Розовый
+  // 6. Шарфик (Галстук)
+  ctx.fillStyle = '#d97706';
   ctx.beginPath();
   ctx.moveTo(10, 22 + bob);
   ctx.quadraticCurveTo(15, 25 + bob, 20, 22 + bob);
