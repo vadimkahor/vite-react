@@ -3,8 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { GameStatus } from './types';
 import Level1 from './levels/level1/Level1';
 import Level2 from './levels/level2/Level2';
-import Showcase from './levels/level2/Showcase';
-import SecretaryShowcase from './levels/level2/SecretaryShowcase';
 import IntroSequence from './components/IntroSequence';
 
 // Список имен водителей для уровня ГОНКИ ПО МКАД
@@ -57,8 +55,6 @@ const App: React.FC = () => {
   const [restartKey, setRestartKey] = useState(0);
   
   const [showLevelSelect, setShowLevelSelect] = useState(false);
-  const [showShowcase, setShowShowcase] = useState(false);
-  const [showSecretaryShowcase, setShowSecretaryShowcase] = useState(false);
   
   // Состояние для управления переходом
   const [transitioning, setTransitioning] = useState(false);
@@ -139,8 +135,6 @@ const App: React.FC = () => {
 
   const startLevel = (levelIndex?: number, bossRush = false) => {
     setShowLevelSelect(false);
-    setShowShowcase(false);
-    setShowSecretaryShowcase(false);
     
     setIsBossRush(bossRush);
     
@@ -207,15 +201,6 @@ const App: React.FC = () => {
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
-  // Special render for Showcases
-  if (showShowcase) {
-      return <Showcase onBack={() => setShowShowcase(false)} />;
-  }
-  
-  if (showSecretaryShowcase) {
-      return <SecretaryShowcase onBack={() => setShowSecretaryShowcase(false)} />;
-  }
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-slate-950 select-none">
@@ -294,22 +279,6 @@ const App: React.FC = () => {
                       >
                          <span>БИТВА С БОССОМ</span>
                          <span className="text-[10px] bg-red-500/20 px-1 rounded border border-red-500/30">FAST</span>
-                      </button>
-                      
-                      <div className="h-px bg-slate-700/50 my-2"></div>
-
-                      <button 
-                          onClick={() => setShowShowcase(true)}
-                          className="px-6 py-3 bg-slate-900 hover:bg-yellow-600/20 border border-slate-800 hover:border-yellow-500/50 text-yellow-500 font-orbitron font-bold text-xs rounded transition-all hover:scale-105 uppercase tracking-wider text-center"
-                      >
-                         ПОСМОТРЕТЬ ОБЪЕКТЫ (OFFICE)
-                      </button>
-
-                      <button 
-                          onClick={() => setShowSecretaryShowcase(true)}
-                          className="px-6 py-3 bg-slate-900 hover:bg-red-600/20 border border-slate-800 border-red-500/50 hover:border-red-400 text-red-100 font-orbitron font-bold text-xs rounded transition-all hover:scale-105 uppercase tracking-wider text-center"
-                      >
-                         ЗЛАЯ СЕКРЕТАРША (WIP)
                       </button>
                   </div>
 
@@ -397,7 +366,7 @@ const App: React.FC = () => {
                   // Restart Current Level
                   startLevel(currentLevel, isBossRush);
                 }}
-                className="w-full py-5 bg-pink-600 text-white font-orbitron font-bold text-xl rounded-xl transition-all hover:bg-pink-500 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(236,72,153,0.3)] uppercase"
+                className="w-full py-5 bg-pink-600 text-white font-orbitron font-bold text-xl rounded-xl transition-all hover:bg-pink-500 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(236,72,153,0.3)] uppercase"
               >
                 ПОПРОБОВАТЬ СНОВА
               </button>
