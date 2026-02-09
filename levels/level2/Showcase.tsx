@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useCallback } from 'react';
 import { LEVEL2_CONFIG } from './config';
 import { Level2State, Platform, Decoration } from './types';
@@ -35,7 +36,6 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
     const lastTimeRef = useRef<number>(0);
     const labelsRef = useRef<ShowcaseLabel[]>([]);
 
-    // Initializing with explicit cast to Level2State to ensure type safety even if structure has minor transient mismatch
     const stateRef = useRef<Level2State>({
         player: {
             x: 100,
@@ -58,11 +58,13 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
         speedLines: [],
         cameraX: 0,
         maxCameraX: 0,
+        shake: { x: 0, y: 0 },
         score: 0,
         gameTime: 0,
         levelLength: 20000,
-        wasScreaming: false
-    } as Level2State);
+        wasScreaming: false,
+        katyaSpeechCooldown: 0
+    });
 
     useEffect(() => {
         const platforms: Platform[] = [];
@@ -74,8 +76,8 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
         // Высоты ярусов (Обновленные для комфортного прыжка)
         const TIER_1_Y_DESK = floorY - DESK_CONFIG.HEIGHT;
         const TIER_2_Y = floorY - FILE_CABINET_CONFIG.HEIGHT; // 160px
-        const TIER_3_Y = floorY - 260; // 260px (Было 270)
-        const TIER_4_Y = floorY - 360; // 360px (Было 380)
+        const TIER_3_Y = floorY - 260; // 260px
+        const TIER_4_Y = floorY - 360; // 360px
 
         // Настройка игрока
         stateRef.current.player.y = floorY - LEVEL2_CONFIG.PLAYER_HEIGHT;
@@ -130,7 +132,7 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
         labels.push({ x: currentX + 20, y: TIER_2_Y - 40, text: "CLOCK (LOW)" });
         currentX += 150;
 
-        // FLOOR PLANTS (NEW)
+        // FLOOR PLANTS
         for(let i = 0; i < 4; i++) {
             decorations.push({ x: currentX, y: floorY, type: 'floor_plant', variant: i });
             labels.push({ x: currentX + 20, y: floorY - 160, text: `FLOOR PLANT ${i+1}` });
@@ -205,7 +207,7 @@ const Showcase: React.FC<ShowcaseProps> = ({ onBack }) => {
         labels.push({ x: currentX + tableW3/2, y: floorY - MEETING_TABLE_CONFIG.HEIGHT - 20, text: "TABLE X3" });
         currentX += tableW3 + 150;
 
-        // --- NEW: WOODEN CRATE ---
+        // CRATE
         platforms.push({ x: currentX, y: floorY - CRATE_CONFIG.HEIGHT, width: CRATE_CONFIG.WIDTH, height: CRATE_CONFIG.HEIGHT, type: 'crate' });
         labels.push({ x: currentX + CRATE_CONFIG.WIDTH/2, y: floorY - CRATE_CONFIG.HEIGHT - 20, text: "CRATE" });
         currentX += CRATE_CONFIG.WIDTH + 100;
