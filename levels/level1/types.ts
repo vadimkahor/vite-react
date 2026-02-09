@@ -98,6 +98,9 @@ export interface GameRefs {
 
   // Флаг вступительной анимации (машина выезжает)
   isIntro: boolean;
+  // Флаг завершающей анимации (машина уезжает вдаль)
+  isOutro: boolean;
+  outroExitOffset: number; // Смещение игрока вверх во время аутро
   // Задержка появления трафика после старта
   trafficSpawnDelay: number;
 }

@@ -6,7 +6,7 @@ import { GameRefs, Particle } from './types';
 import { updateGame } from './physics';
 import { drawScene } from './render';
 
-const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive }) => {
+const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive, isGameOver }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
@@ -80,6 +80,8 @@ const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive }) => {
     cameraOffset: -200, 
     engineIntensity: 0,
     isIntro: true,
+    isOutro: false,
+    outroExitOffset: 0,
     trafficSpawnDelay: 0
   });
 
@@ -149,6 +151,8 @@ const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive }) => {
     // Начальное состояние для анимации въезда
     refs.cameraOffset = -300; 
     refs.isIntro = true;      
+    refs.isOutro = false;
+    refs.outroExitOffset = 0;
     refs.trafficSpawnDelay = 180; 
 
     refs.engineIntensity = 0;
@@ -178,7 +182,9 @@ const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive }) => {
 
   // --- ОБРАБОТЧИКИ ВВОДА ---
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => refsRef.current.keys.add(e.key);
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (!isGameOver) refsRef.current.keys.add(e.key);
+    };
     const handleKeyUp = (e: KeyboardEvent) => refsRef.current.keys.delete(e.key);
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
@@ -186,7 +192,7 @@ const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive }) => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [isGameOver]);
 
   // --- ИГРОВОЙ ЦИКЛ (LOOP) ---
   const loop = useCallback(() => {
@@ -217,6 +223,11 @@ const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive }) => {
       // Нормализация скорости: 1.0 = 60 FPS
       const timeScale = dt / (1000 / 60);
       const cappedTimeScale = Math.min(timeScale, 4.0); 
+
+      // DISABLE KEYS IF GAME OVER
+      if (isGameOver) {
+          refsRef.current.keys.clear();
+      }
 
       const isPlaying = updateGame(
           refsRef.current, 
@@ -251,12 +262,12 @@ const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive }) => {
       }
     }
     requestRef.current = requestAnimationFrame(loop);
-  }, [onGameOver, onComplete]);
+  }, [onGameOver, onComplete, isGameOver]);
 
   return (
     <div className="relative w-full h-full">
       {/* HUD - Верхняя панель */}
-      {isActive && (
+      {isActive && !isGameOver && (
         <div className="absolute top-0 left-0 w-full h-8 z-30 bg-black/60 backdrop-blur-md border-b border-white/10 flex items-center px-3 md:px-5 overflow-hidden">
           <div 
             ref={progressBarRef}
@@ -269,7 +280,7 @@ const Level1: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive }) => {
           <div className="relative w-full flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="text-pink-500 text-[8px] font-bold uppercase tracking-widest bg-pink-500/15 px-1 rounded border border-pink-500/20 leading-none py-0.5">M02</span>
-              <span className="text-white font-orbitron font-bold text-[9px] md:text-[10px] uppercase tracking-tight">Snowy Night Taxi</span>
+              <span className="text-white font-orbitron font-bold text-[9px] md:text-[10px] uppercase tracking-tight">ГОНКИ ПО МКАД</span>
             </div>
             <div className="flex items-center justify-end gap-2 min-w-[100px] sm:min-w-[180px]">
               <span className="text-pink-500 text-[8px] font-bold uppercase tracking-widest opacity-80 hidden sm:inline whitespace-nowrap">Осталось:</span>
