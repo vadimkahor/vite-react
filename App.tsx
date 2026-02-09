@@ -3,13 +3,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { GameStatus } from './types';
 import Level1 from './levels/level1/Level1';
 import Level2 from './levels/level2/Level2';
+import Level3 from './levels/level3/Level3';
 import IntroSequence from './components/IntroSequence';
+import BirthdayScreen from './levels/level3/BirthdayScreen';
 
 // Список имен водителей для уровня ГОНКИ ПО МКАД
 const DRIVER_NAMES = [
   'Махмуджон', 'Мухаммад', 'Абдуллох', 'Абдурахмон', 'Юсуф', 
   'Умар', 'Ибрагим', 'Сухроб', 'Джамшед', 'Бахтовар', 
   'Алиджон', 'Исмаил', 'Фарход', 'Сафар', 'Шохрух'
+];
+
+// Список мест для уровня СУШИ ЯРОСТИ
+const PLACE_NAMES = [
+  'Окинаве', 'Тануки', 'Макдональдсе', 'Бургер Кинге', 'Шоколаднице'
 ];
 
 // Компонент перехода (Шторки)
@@ -50,6 +57,7 @@ const App: React.FC = () => {
   const [gameStats, setGameStats] = useState({ score: 0, distance: 0 });
   const [levelResult, setLevelResult] = useState({ score: 0, time: 0, level: 1 });
   const [randomDriverName, setRandomDriverName] = useState('');
+  const [randomPlaceName, setRandomPlaceName] = useState('');
   
   // Ключ для принудительного пересоздания компонента уровня (сброс всех useRef)
   const [restartKey, setRestartKey] = useState(0);
@@ -73,21 +81,32 @@ const App: React.FC = () => {
 
   // Handler for Game Over (Crash)
   const handleGameOver = useCallback((finalScore: number) => {
-    setGameStats({ score: finalScore, distance: 0 }); 
-    
-    // Если проигрыш на втором уровне (МКАД), выбираем имя водителя
-    if (currentLevel === 2) {
-      const name = DRIVER_NAMES[Math.floor(Math.random() * DRIVER_NAMES.length)];
-      setRandomDriverName(name);
-    }
-    
-    setStatus(GameStatus.GAMEOVER);
-    
-    // Save High Score
-    if (finalScore > highScore) {
-      setHighScore(finalScore);
-      localStorage.setItem('gnd_high_score', finalScore.toString());
-    }
+    // Используем функциональное обновление, чтобы проверить текущий статус и избежать повторных расчетов
+    setStatus(prevStatus => {
+      if (prevStatus === GameStatus.GAMEOVER) return prevStatus;
+
+      setGameStats({ score: finalScore, distance: 0 }); 
+      
+      // Если проигрыш на втором уровне (МКАД), выбираем имя водителя ОДИН РАЗ
+      if (currentLevel === 2) {
+        const name = DRIVER_NAMES[Math.floor(Math.random() * DRIVER_NAMES.length)];
+        setRandomDriverName(name);
+      }
+
+      // Если проигрыш на третьем уровне (Суши), выбираем место встречи ОДИН РАЗ
+      if (currentLevel === 3) {
+        const place = PLACE_NAMES[Math.floor(Math.random() * PLACE_NAMES.length)];
+        setRandomPlaceName(place);
+      }
+      
+      // Save High Score
+      if (finalScore > highScore) {
+        setHighScore(finalScore);
+        localStorage.setItem('gnd_high_score', finalScore.toString());
+      }
+
+      return GameStatus.GAMEOVER;
+    });
   }, [highScore, currentLevel]);
 
   // Handler for Level Completion (Data collection)
@@ -112,10 +131,12 @@ const App: React.FC = () => {
   // Handler for "Continue" button on Level Complete screen
   const handleNextLevel = () => {
     if (currentLevel === 1) {
-      // Transition to Level 2
       setCurrentLevel(2);
-      setIsBossRush(false); // Reset boss rush for next level
-      setStatus(GameStatus.INTRO); // Show intro for level 2
+      setIsBossRush(false);
+      setStatus(GameStatus.INTRO);
+    } else if (currentLevel === 2) {
+      setCurrentLevel(3);
+      setStatus(GameStatus.INTRO);
     } else {
       // Game Complete -> Menu
       setStatus(GameStatus.MENU);
@@ -149,6 +170,14 @@ const App: React.FC = () => {
     setStatus(GameStatus.PLAYING);
   };
 
+  // Handler to start level via Intro sequence from menu
+  const handleMenuSelect = (level: number, bossMode: boolean = false) => {
+      setCurrentLevel(level);
+      setIsBossRush(bossMode);
+      setShowLevelSelect(false);
+      setStatus(GameStatus.INTRO);
+  };
+
   // Handler for the main start button - triggers fade out then INTRO
   const handleMainStart = () => {
     setMenuExiting(true);
@@ -156,6 +185,7 @@ const App: React.FC = () => {
     // Wait for fade out animation (1s) + buffer
     setTimeout(() => {
       setCurrentLevel(1);
+      setIsBossRush(false);
       setStatus(GameStatus.INTRO);
       setMenuExiting(false);
     }, 1200);
@@ -190,7 +220,14 @@ const App: React.FC = () => {
           />
         );
       case 3:
-        return <div className="text-white text-center mt-20 font-orbitron">LEVEL 3 COMING SOON</div>;
+        return (
+          <Level3
+            key={levelKey}
+            isActive={isActive}
+            onGameOver={() => handleGameOver(0)}
+            onComplete={handleLevelComplete}
+          />
+        );
       default:
         return null;
     }
@@ -215,11 +252,16 @@ const App: React.FC = () => {
 
       {/* INTRO SEQUENCE */}
       {status === GameStatus.INTRO && (
-        <IntroSequence level={currentLevel} onComplete={() => startLevel(currentLevel)} />
+        <IntroSequence level={currentLevel} onComplete={() => startLevel(currentLevel, isBossRush)} />
+      )}
+
+      {/* BIRTHDAY SCREEN SPECIAL CASE FOR LEVEL 3 */}
+      {status === GameStatus.LEVEL_COMPLETE && levelResult.level === 3 && (
+        <BirthdayScreen onBack={() => setStatus(GameStatus.MENU)} />
       )}
 
       {/* LEVEL RENDERER - Keep visible during Game Over and Completion for darkening effect */}
-      {(status === GameStatus.PLAYING || status === GameStatus.LEVEL_COMPLETE || status === GameStatus.GAMEOVER) && renderLevel()}
+      {(status === GameStatus.PLAYING || (status === GameStatus.LEVEL_COMPLETE && levelResult.level !== 3) || status === GameStatus.GAMEOVER) && renderLevel()}
 
       {/* MENU SCREEN */}
       {status === GameStatus.MENU && (
@@ -249,16 +291,16 @@ const App: React.FC = () => {
                   disabled={menuExiting}
                   className="mt-12 text-pink-500/30 hover:text-pink-500 font-orbitron text-[10px] md:text-xs tracking-[0.4em] transition-colors duration-300 uppercase select-none hover:scale-105"
                 >
-                  [ ЧИТЫ ]
+                  [ ВЫБОР УРОВНЯ ]
                 </button>
               </div>
             ) : (
               <div className="animate-in fade-in zoom-in duration-300 flex flex-col items-center bg-slate-900/50 p-10 rounded-3xl border border-pink-500/20 backdrop-blur-md shadow-[0_0_50px_rgba(236,72,153,0.1)]">
-                  <h2 className="text-2xl md:text-3xl font-orbitron font-bold text-white mb-8 tracking-widest text-shadow-pink">LEVEL SELECT</h2>
+                  <h2 className="text-2xl md:text-3xl font-orbitron font-bold text-white mb-8 tracking-widest text-shadow-pink">ВЫБОР УРОВНЯ</h2>
                   
                   <div className="flex flex-col gap-4 w-full min-w-[240px]">
                       <button 
-                          onClick={() => { setCurrentLevel(1); startLevel(1); }}
+                          onClick={() => handleMenuSelect(1)}
                           className="px-6 py-4 bg-slate-800 hover:bg-pink-600 border border-slate-700 hover:border-pink-400 text-white font-orbitron font-bold text-sm rounded transition-all hover:scale-105 uppercase tracking-wider text-left flex justify-between group"
                       >
                          <span>Level 1</span>
@@ -266,19 +308,27 @@ const App: React.FC = () => {
                       </button>
 
                       <button 
-                          onClick={() => { setCurrentLevel(2); startLevel(2); }}
+                          onClick={() => handleMenuSelect(1, true)}
+                          className="px-6 py-3 bg-red-900/50 hover:bg-red-600 border border-red-500/50 hover:border-red-400 text-red-100 font-orbitron font-bold text-xs rounded transition-all hover:scale-105 uppercase tracking-wider text-center flex justify-between items-center group"
+                      >
+                         <span>БИТВА С БОССОМ</span>
+                         <span className="text-[10px] bg-red-500/20 px-1 rounded border border-red-500/30">FAST</span>
+                      </button>
+
+                      <button 
+                          onClick={() => handleMenuSelect(2)}
                           className="px-6 py-4 bg-slate-800 hover:bg-pink-600 border border-slate-700 hover:border-pink-400 text-white font-orbitron font-bold text-sm rounded transition-all hover:scale-105 uppercase tracking-wider text-left flex justify-between group"
                       >
                          <span>Level 2</span>
                          <span className="text-slate-500 group-hover:text-white/70 text-[10px]">ГОНКИ ПО МКАД</span>
                       </button>
-                      
+
                       <button 
-                          onClick={() => { setCurrentLevel(1); startLevel(1, true); }}
-                          className="px-6 py-3 bg-red-900/50 hover:bg-red-600 border border-red-500/50 hover:border-red-400 text-red-100 font-orbitron font-bold text-xs rounded transition-all hover:scale-105 uppercase tracking-wider text-center flex justify-between items-center group"
+                          onClick={() => handleMenuSelect(3)}
+                          className="px-6 py-4 bg-slate-800 hover:bg-green-600 border border-slate-700 hover:border-green-400 text-white font-orbitron font-bold text-sm rounded transition-all hover:scale-105 uppercase tracking-wider text-left flex justify-between group"
                       >
-                         <span>БИТВА С БОССОМ</span>
-                         <span className="text-[10px] bg-red-500/20 px-1 rounded border border-red-500/30">FAST</span>
+                         <span>Level 3</span>
+                         <span className="text-slate-500 group-hover:text-white/70 text-[10px]">СУШИ ЯРОСТИ</span>
                       </button>
                   </div>
 
@@ -286,15 +336,15 @@ const App: React.FC = () => {
                       onClick={() => setShowLevelSelect(false)}
                       className="mt-8 text-slate-500 hover:text-white font-orbitron text-xs tracking-[0.2em] transition-colors uppercase"
                   >
-                      &lt; BACK
+                      &lt; НАЗАД
                   </button>
               </div>
             )}
         </div>
       )}
 
-      {/* LEVEL COMPLETE SCREEN */}
-      {status === GameStatus.LEVEL_COMPLETE && (
+      {/* LEVEL COMPLETE SCREEN (STANDARD) */}
+      {status === GameStatus.LEVEL_COMPLETE && levelResult.level !== 3 && (
         <div className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center overflow-hidden">
           {/* SMOOTH FADE IN OVERLAY (Matches Game Over) */}
           <div className="absolute inset-0 bg-black animate-fade-in" />
@@ -304,7 +354,9 @@ const App: React.FC = () => {
               LEVEL {levelResult.level} COMPLETE
             </h2>
             <p className="text-xl md:text-2xl text-white font-medium opacity-80 text-center tracking-widest mb-10 uppercase">
-              {levelResult.level === 1 ? 'Катя успешно сбежала из офиса' : 'Катя успешно доехала до ресторана'}
+              {levelResult.level === 1 ? 'Катя успешно сбежала из офиса' : 
+               levelResult.level === 2 ? 'Катя успешно доехала до ресторана' : 
+               'Катя доказала свою ярость'}
             </p>
             
             <div className="flex justify-center mb-12 w-full max-w-lg">
@@ -349,14 +401,16 @@ const App: React.FC = () => {
           
           <div className="relative max-w-4xl w-full flex flex-col items-center opacity-0 animate-[fade-in_1s_ease-out_1.2s_forwards] slide-in-from-bottom-12 duration-700">
             <h2 className="text-[7vw] sm:text-5xl md:text-7xl font-orbitron font-black text-pink-500 mb-6 drop-shadow-[0_0_20px_rgba(236,72,153,0.5)] uppercase tracking-tighter text-center w-full whitespace-nowrap leading-none">
-              {currentLevel === 1 ? 'КАТЯ НЕ СМОГЛА' : 'КАТЯ ОПОЗДАЛА'}
+              {currentLevel === 1 ? 'КАТЯ НЕ СМОГЛА' : currentLevel === 2 ? 'КАТЯ ОПОЗДАЛА' : 'КАТЯ ПОДАВЛЕНА'}
             </h2>
             
             <div className="mb-8 px-4 max-w-2xl">
               <p className="text-xl md:text-2xl text-white font-medium opacity-90 text-center tracking-tight mb-4">
                 {currentLevel === 1 
                   ? 'Еще никто не покидал офис ВТБ раньше 18:00'
-                  : `Лучше бы ${randomDriverName} готовил шаурму, а не водил такси...`}
+                  : currentLevel === 2 
+                  ? `Лучше бы ${randomDriverName} готовил шаурму, а не водил такси...`
+                  : `И почему нельзя было встретиться в ${randomPlaceName}?`}
               </p>
             </div>
 
