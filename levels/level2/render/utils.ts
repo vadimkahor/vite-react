@@ -4,8 +4,6 @@ export const spriteCache: Record<string, HTMLCanvasElement> = {};
 const glowCache: Record<string, HTMLCanvasElement> = {};
 
 export const clearSpriteCache = () => {
-    // Очищаем объект кэша.
-    // JS Garbage Collector сам удалит Canvas элементы, если на них нет ссылок.
     for (const key in spriteCache) {
         delete spriteCache[key];
     }
@@ -28,9 +26,77 @@ export const drawRoundedRect = (ctx: CanvasRenderingContext2D, x: number, y: num
   ctx.closePath();
 };
 
-/**
- * Получает кэшированный спрайт или создает его, если он не существует.
- */
+export const drawSpeechBubble = (ctx: CanvasRenderingContext2D, x: number, y: number, text: string, alpha: number, scale: number = 1, alignLeft: boolean = false) => {
+  if (scale <= 0.01) return; 
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  
+  const fontSize = 14;
+  const lineHeight = 18;
+  ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
+  
+  const lines = text.split('\n');
+  let maxWidth = 0;
+  lines.forEach(line => {
+      const w = ctx.measureText(line).width;
+      if (w > maxWidth) maxWidth = w;
+  });
+
+  const padding = 10;
+  const bubbleWidth = maxWidth + padding * 2;
+  const bubbleHeight = (lines.length * lineHeight) + padding * 1.5;
+  
+  // Увеличиваем отступы для босса (alignLeft), чтобы не перекрывать голову
+  const offsetX = alignLeft ? 60 : 25; 
+  const offsetY = alignLeft ? 50 : 25;
+  
+  const bx = alignLeft ? x - bubbleWidth - offsetX : x + offsetX; 
+  const by = y - bubbleHeight - offsetY; 
+
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.translate(-x, -y);
+
+  // Tail
+  ctx.beginPath();
+  if (alignLeft) {
+      const tailBaseX = bx + bubbleWidth - 5;
+      ctx.moveTo(tailBaseX - 15, by + bubbleHeight);
+      ctx.lineTo(x - 10, y - 20); 
+      ctx.lineTo(tailBaseX, by + bubbleHeight);
+  } else {
+      const tailBaseX = bx + 5;
+      ctx.moveTo(tailBaseX + 15, by + bubbleHeight);
+      ctx.lineTo(x + 5, y - 15); 
+      ctx.lineTo(tailBaseX, by + bubbleHeight);
+  }
+  ctx.closePath();
+  
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  ctx.strokeStyle = '#0f172a';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  drawRoundedRect(ctx, bx, by, bubbleWidth, bubbleHeight, 8);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  ctx.strokeStyle = '#0f172a';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = '#0f172a';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  
+  lines.forEach((line, i) => {
+      ctx.fillText(line, bx + padding, by + padding + (i * lineHeight));
+  });
+
+  ctx.restore();
+};
+
 export const getSprite = (key: string, width: number, height: number, drawFn: (ctx: CanvasRenderingContext2D) => void): HTMLCanvasElement => {
     if (!spriteCache[key]) {
         const cvs = document.createElement('canvas');
@@ -43,9 +109,6 @@ export const getSprite = (key: string, width: number, height: number, drawFn: (c
     return spriteCache[key];
 };
 
-/**
- * Создает спрайт радиального свечения для замены дорогого shadowBlur.
- */
 export const getGlowSprite = (color: string, size: number): HTMLCanvasElement => {
     const key = `glow_${color}_${size}`;
     if (glowCache[key]) return glowCache[key];
@@ -60,7 +123,6 @@ export const getGlowSprite = (color: string, size: number): HTMLCanvasElement =>
         const grad = ctx.createRadialGradient(center, center, 0, center, center, center / 2);
         grad.addColorStop(0, color);
         grad.addColorStop(1, 'rgba(0,0,0,0)');
-        
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, size, size);
     }
