@@ -29,6 +29,13 @@ export interface PlayerState {
   facingRight: boolean;
   frameTimer: number; // Для анимации бега
   currentPlatformType: Platform['type'] | null; // Тип платформы, на которой стоит игрок
+  
+  // Dynamic Speech Bubble
+  activeBubble?: {
+      text: string;
+      timer: number;
+      maxTimer: number; // For animation progress
+  };
 }
 
 export interface Enemy {
@@ -45,6 +52,14 @@ export interface Enemy {
   triggerDistance: number; // Дистанция обнаружения игрока
   vx: number;
   frameTimer: number;
+  
+  // Dynamic Speech Bubble
+  speechBubble?: {
+      text: string;
+      timer: number;
+      maxTimer: number; // For animation progress
+  };
+  hasBeenJumpedOver?: boolean; // Чтобы фраза Кати не повторялась для одного охранника
 }
 
 export interface Projectile {
@@ -74,6 +89,16 @@ export interface Boss {
   maxHp: number;
   damagedTimer: number; // Visual flash when hit
   invulnerableTimer: number; // Cooldown between hits from shouting
+  
+  // New: Dialogue support
+  speechBubble?: {
+      text: string;
+      timer: number;
+      maxTimer: number;
+  };
+  // Delayed reaction support
+  pendingSpeechTimer?: number;
+  pendingSpeechText?: string;
 }
 
 // Эффект скорости (ветер)
@@ -121,8 +146,23 @@ export interface Level2State {
   speedLines: SpeedLine[]; // Эффекты ветра
   cameraX: number;
   maxCameraX: number; // Tracks the furthest point reached to limit backtracking
+  shake: { x: number; y: number }; // Screen shake effect
   score: number;
   gameTime: number;
   levelLength?: number; // Опционально для витрины
   wasScreaming: boolean; // Tracks previous frame mic input state
+  
+  // Phrase History to avoid repetition
+  lastKatyaPhrase?: string;
+  lastGuardPhrase?: string;
+  katyaSpeechCooldown: number; // Cooldown between Katya's taunts
+
+  // Scripted Intro Event
+  introMessage?: {
+      active: boolean;
+      text: string;
+      opacity: number;
+      timer: number;
+      phase: 'fadein' | 'hold' | 'fadeout';
+  }
 }
