@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,6 +63,15 @@
     .animate-text-zoom {
       animation: text-zoom-out 0.4s ease-in forwards;
       animation-delay: 0.5s;
+    }
+
+    /* Game Over Fade In */
+    @keyframes fade-in {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .animate-fade-in {
+      animation: fade-in 1.5s ease-out forwards;
     }
   </style>
 <script type="importmap">

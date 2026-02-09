@@ -1,6 +1,7 @@
 
 export enum GameStatus {
   MENU = 'MENU',
+  INTRO = 'INTRO',
   PLAYING = 'PLAYING',
   LEVEL_COMPLETE = 'LEVEL_COMPLETE',
   GAMEOVER = 'GAMEOVER',
@@ -23,4 +24,5 @@ export interface LevelProps {
   onComplete: (score: number, timeSpent: number) => void;
   isActive: boolean;
   startAtBoss?: boolean;
+  isGameOver?: boolean;
 }
