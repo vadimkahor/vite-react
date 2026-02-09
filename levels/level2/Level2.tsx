@@ -441,11 +441,20 @@ const Level2: React.FC<LevelProps> = ({ onGameOver, onComplete, isActive, startA
   useEffect(() => {
       if (isActive && !introStarted.current) {
           introStarted.current = true;
-          inputEnabled.current = false;
           lastTimeRef.current = 0;
-          setTimeout(() => triggerCountdown(), 1200);
+          
+          if (startAtBoss) {
+              // Если босс-раш, пропускаем визуальный отсчет, но даем паузу на шторки
+              inputEnabled.current = false;
+              setTimeout(() => {
+                  inputEnabled.current = true;
+              }, 1500);
+          } else {
+              inputEnabled.current = false;
+              setTimeout(() => triggerCountdown(), 1200);
+          }
       }
-  }, [isActive]);
+  }, [isActive, startAtBoss]);
 
   return (
     <div className="relative w-full h-full bg-slate-300">
