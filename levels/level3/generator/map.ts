@@ -1,3 +1,5 @@
+
+// @ts-ignore
 import * as ROT from 'rot-js';
 import { LEVEL3_CONFIG } from '../config';
 import { SoftBlock, Door } from '../types';
@@ -12,7 +14,7 @@ export const generateLevelMap = (forcedEntry?: Door, isLastRoom: boolean = false
 
     // 1. БАЗОВАЯ ГЕНЕРАЦИЯ (Divided Maze)
     const maze = new ROT.Map.DividedMaze(COLS, ROWS);
-    maze.create((x, y, value) => {
+    maze.create((x: number, y: number, value: number) => {
         if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
             mapData[y][x] = value;
         }
