@@ -20,7 +20,8 @@ const COLORS = ['#f472b6', '#ec4899', '#db2777', '#fbbf24', '#34d399', '#60a5fa'
 
 const BirthdayScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [pieces, setPieces] = useState<ConfettiPiece[]>([]);
-    const requestRef = useRef<number>(null);
+    // Fix: Explicitly allow null to make ref mutable
+    const requestRef = useRef<number | null>(null);
 
     useEffect(() => {
         // Инициализация конфетти
